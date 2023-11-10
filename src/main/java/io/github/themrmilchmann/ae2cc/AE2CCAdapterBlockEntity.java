@@ -40,16 +40,16 @@ import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.api.peripheral.IComputerAccess;
 import dan200.computercraft.api.peripheral.IPeripheral;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluid;
+import net.minecraft.block.BlockState;
+import net.minecraft.fluid.Fluid;
+import net.minecraft.item.Item;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.Registries;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -148,7 +148,7 @@ public final class AE2CCAdapterBlockEntity extends AENetworkBlockEntity implemen
 
                 if (pendingJob.cpu() != null) {
                     craftingCPU = craftingService.getCpus().stream().filter(it -> {
-                        Component cpuName = it.getName();
+                        Text cpuName = it.getName();
                         return cpuName != null && pendingJob.cpu().equals(cpuName.getString());
                     }).findAny().orElse(null);
 
@@ -159,7 +159,7 @@ public final class AE2CCAdapterBlockEntity extends AENetworkBlockEntity implemen
                 }
 
                 IActionSource actionSource = IActionSource.ofMachine(this);
-                ICraftingSubmitResult craftingSubmitResult = node.getGrid().getCraftingService().trySubmitJob(craftingPlan, this, craftingCPU, false, actionSource);
+                ICraftingSubmitResult craftingSubmitResult = node.getGrid().getCraftingService().submitJob(craftingPlan, this, craftingCPU, false, actionSource);
                 if (!craftingSubmitResult.successful()) {
                     String reason = switch (Objects.requireNonNull(craftingSubmitResult.errorCode())) {
                         case INCOMPLETE_PLAN -> "INCOMPLETE_PLAN";
@@ -240,15 +240,15 @@ public final class AE2CCAdapterBlockEntity extends AENetworkBlockEntity implemen
     }
 
     @Override
-    public void loadTag(CompoundTag data) {
+    public void loadTag(NbtCompound data) {
         super.loadTag(data);
 
-        ListTag jobsTag = data.getList("jobs", Tag.TAG_COMPOUND);
+        NbtList jobsTag = data.getList("jobs", NbtElement.COMPOUND_TYPE);
         List<CraftingJob> craftingJobs = new ArrayList<>();
 
         for (int i = 0; i < jobsTag.size(); i++) {
-            CompoundTag jobTag = jobsTag.getCompound(i);
-            UUID id = jobTag.getUUID("id");
+            NbtCompound jobTag = jobsTag.getCompound(i);
+            UUID id = jobTag.getUuid("id");
             ICraftingLink link = StorageHelper.loadCraftingLink(jobTag.getCompound("link"), this);
 
             craftingJobs.add(new CraftingJob(id, link));
@@ -262,31 +262,6 @@ public final class AE2CCAdapterBlockEntity extends AENetworkBlockEntity implemen
         } finally {
             this.craftingJobLock.unlock();
         }
-    }
-
-    @Override
-    public void saveAdditional(CompoundTag data) {
-        super.saveAdditional(data);
-
-        ListTag jobsTag = new ListTag();
-
-        this.craftingJobLock.lock();
-
-        try {
-            for (CraftingJob job : this.craftingJobs) {
-                CompoundTag jobTag = new CompoundTag();
-                jobTag.putUUID("id", job.id());
-
-                CompoundTag linkTag = new CompoundTag();
-                job.link().writeToNBT(linkTag);
-
-                jobTag.put("link", linkTag);
-            }
-        } finally {
-            this.craftingJobLock.unlock();
-        }
-
-        data.put("jobs", jobsTag);
     }
 
     @SuppressWarnings("FinalMethodInFinalClass")
@@ -408,9 +383,9 @@ public final class AE2CCAdapterBlockEntity extends AENetworkBlockEntity implemen
                     data.put("availableStorage", cpu.getAvailableStorage());
                     data.put("selectionMode", selectionMode);
 
-                    Component name = cpu.getName();
+                    Text name = cpu.getName();
                     if (name != null) {
-                        data.put("name", name.getContents());
+                        data.put("name", name.getContent());
                     }
 
                     CraftingJobStatus jobStatus = cpu.getJobStatus();
@@ -487,16 +462,16 @@ public final class AE2CCAdapterBlockEntity extends AENetworkBlockEntity implemen
             IGrid grid = blockEntity.getMainNode().getGrid();
             if (grid == null) throw new LuaException("Cannot connect to AE2 Network");
 
-            ResourceLocation resourceLocation = ResourceLocation.tryParse(id);
+            Identifier resourceLocation = Identifier.tryParse(id);
             if (resourceLocation == null) throw new LuaException("Invalid ID: '" + id + "'");
 
             AEKey key = switch (type) {
                 case "fluid" -> {
-                    Fluid fluid = Registry.FLUID.getOptional(resourceLocation).orElseThrow(() -> new LuaException("Fluid does not exist: " + resourceLocation));
+                    Fluid fluid = Registries.FLUID.getOrEmpty(resourceLocation).orElseThrow(() -> new LuaException("Fluid does not exist: " + resourceLocation));
                     yield AEFluidKey.of(fluid);
                 }
                 case "item" -> {
-                    Item item = Registry.ITEM.getOptional(resourceLocation).orElseThrow(() -> new LuaException("Item does not exist: " + resourceLocation));
+                    Item item = Registries.ITEM.getOrEmpty(resourceLocation).orElseThrow(() -> new LuaException("Item does not exist: " + resourceLocation));
                     yield AEItemKey.of(item);
                 }
                 default -> throw new LuaException("Invalid type: '" + type + "' (Valid types are 'fluid' and 'item')");
@@ -506,7 +481,7 @@ public final class AE2CCAdapterBlockEntity extends AENetworkBlockEntity implemen
             IActionSource actionSource = IActionSource.ofMachine(this.blockEntity);
 
             Future<ICraftingPlan> futureCraftingPlan = craftingService.beginCraftingCalculation(
-                blockEntity.level,
+                blockEntity.world,
                 () -> actionSource,
                 key,
                 amount,

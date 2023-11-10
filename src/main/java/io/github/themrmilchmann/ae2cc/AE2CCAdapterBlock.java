@@ -22,23 +22,22 @@
 package io.github.themrmilchmann.ae2cc;
 
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockEntityProvider;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.piston.PistonBehavior;
+import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.util.math.BlockPos;
 
-public final class AE2CCAdapterBlock extends Block implements EntityBlock {
+public final class AE2CCAdapterBlock extends Block implements BlockEntityProvider {
 
     public AE2CCAdapterBlock() {
-        super(FabricBlockSettings.of(Material.METAL).strength(2.2F, 11F).sounds(SoundType.METAL));
+        super(FabricBlockSettings.create().strength(2.2F, 11F).sounds(BlockSoundGroup.METAL).pistonBehavior(PistonBehavior.BLOCK));
     }
 
     @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new AE2CCAdapterBlockEntity(pos, state);
+    public BlockEntity createBlockEntity(BlockPos blockPos, BlockState blockState) {
+        return new AE2CCAdapterBlockEntity(blockPos, blockState);
     }
-
 }

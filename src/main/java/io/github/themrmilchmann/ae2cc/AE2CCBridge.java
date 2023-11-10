@@ -22,34 +22,46 @@
 package io.github.themrmilchmann.ae2cc;
 
 import dan200.computercraft.api.ComputerCraftAPI;
+import dan200.computercraft.api.peripheral.GenericPeripheral;
+import dan200.computercraft.api.peripheral.PeripheralLookup;
+import dan200.computercraft.api.peripheral.PeripheralType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-import net.minecraft.core.Registry;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.block.Block;
+import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.ItemGroups;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 
 public final class AE2CCBridge implements ModInitializer {
 
     public static final Block ADAPTER_BLOCK = new AE2CCAdapterBlock();
+    public static final BlockItem ADAPTER_BLOCK_ITEM = new BlockItem(ADAPTER_BLOCK, new FabricItemSettings());
 
     public static final BlockEntityType<AE2CCAdapterBlockEntity> ADAPTER_BLOCK_ENTITY = Registry.register(
-        Registry.BLOCK_ENTITY_TYPE,
-        "ae2cc:adapter_block_entity",
-        FabricBlockEntityTypeBuilder.create(AE2CCAdapterBlockEntity::new, ADAPTER_BLOCK).build()
+            Registries.BLOCK_ENTITY_TYPE,
+            "ae2cc:adapter_block_entity",
+            FabricBlockEntityTypeBuilder.create(AE2CCAdapterBlockEntity::new, ADAPTER_BLOCK).build()
     );
 
     @Override
     public void onInitialize() {
-        Registry.register(Registry.BLOCK, "ae2cc:adapter", ADAPTER_BLOCK);
-        Registry.register(Registry.ITEM, "ae2cc:adapter", new BlockItem(ADAPTER_BLOCK, new FabricItemSettings()));
+        Registry.register(Registries.BLOCK, "ae2cc:adapter", ADAPTER_BLOCK);
+        Registry.register(Registries.ITEM, "ae2cc:adapter", ADAPTER_BLOCK_ITEM);
 
-        ComputerCraftAPI.registerPeripheralProvider((level, pos, dir) -> {
-            BlockEntity blockEntity = level.getBlockEntity(pos);
-            return (blockEntity instanceof AE2CCAdapterBlockEntity ae2CCAdapterBlockEntity) ? ae2CCAdapterBlockEntity.asPeripheral() : null;
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register((group) -> {
+            group.add(ADAPTER_BLOCK_ITEM);
         });
-    }
 
+        PeripheralLookup.get().registerForBlockEntity((blockEntity, context) -> {
+            if (blockEntity instanceof AE2CCAdapterBlockEntity) {
+                return blockEntity.asPeripheral();
+            }
+
+            return null;
+        }, ADAPTER_BLOCK_ENTITY);
+    }
 }
