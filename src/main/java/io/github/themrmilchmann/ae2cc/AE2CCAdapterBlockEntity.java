@@ -345,7 +345,8 @@ public final class AE2CCAdapterBlockEntity extends AENetworkBlockEntity implemen
                         data.put("type", "item");
                         data.put("amount", value);
                     } else {
-                        return null;
+                        data.put("type", "unknown");
+                        data.put("amount", value);
                     }
 
                     return Map.copyOf(data);
@@ -457,6 +458,32 @@ public final class AE2CCAdapterBlockEntity extends AENetworkBlockEntity implemen
                 }
             } finally {
                 pendingJobLock.unlock();
+            }
+        }
+
+        @LuaFunction
+        public final List<Map<String, Object>> getAllCraftingRequests() throws LuaException {
+            IGrid grid = blockEntity.getMainNode().getGrid();
+            if (grid == null) throw new LuaException("Cannot connect to AE2 Network");
+
+            try {
+                return grid.getCraftingService().getCpus().stream()
+                    .flatMap(cpu -> {
+                        CraftingJobStatus jobStatus = cpu.getJobStatus();
+                        if (jobStatus == null) return Stream.empty();
+
+                        GenericStack stack = jobStatus.crafting();
+                        if (stack == null) return Stream.empty();
+
+                        return Stream.of(Map.<String, Object>of(
+                            "systemID", cpu.getJobStatus().crafting().what().getId().toString(),
+                            "displayName", cpu.getJobStatus().crafting().what().getDisplayName().getString(),
+                            "amount", cpu.getJobStatus().crafting().amount()
+                        ));
+                    })
+                    .toList();
+            } catch (Exception e) {
+                throw new LuaException(e.getMessage());
             }
         }
 
