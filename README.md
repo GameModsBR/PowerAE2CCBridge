@@ -1,16 +1,15 @@
-# AE2CC Bridge
+# PowerAE2CC Bridge
 
-AE2CC Bridge adds a simple peripheral block that may be used to access an [Applied Energistics 2](https://github.com/AppliedEnergistics/Applied-Energistics-2)
-ME system from [ComputerCraft](https://github.com/cc-tweaked/cc-restitched) computers.
-
-Keep in mind that this mod is slightly unbalanced by design as the peripheral
-access to the ME system allows you to circumvent some channel limitations at
-practically no energy cost.
+PowerAE2CC Bridge is a fork of [AE2CC Bridge](https://github.com/TheMrMilchmann/AE2CCBridge) that adds a simple peripheral block that may be used to access an [Applied Energistics 2](https://github.com/AppliedEnergistics/Applied-Energistics-2)
+ME system from [ComputerCraft](https://github.com/cc-tweaked/CC-Tweaked) computers.
 
 > **Note**: Currently, the peripheral only exposes a fairly small API. If you
 > find that functionality you need is missing, please file a feature request in
 > our issue tracker.
 
+## Block
+
+The bridge block will use when connected to an Applied system 5 AE/t of power as well as consume a channel. 
 
 ## Peripheral API (Functions)
 
@@ -96,6 +95,33 @@ For a job to be included in the output, its state must either be `SCHEDULED` or
 included. This ID is the ID given to the running job by the ME system (opposed
 to the `jobID` which is local to a peripheral).
 
+### `getAllCraftingRequests`
+
+Returns a list of all the currently being processed crafts by all crafting cpus
+
+#### Returns
+
+1. `{ craftingRequest, ...}`
+
+where `craftingRequest` is a table with the following attributes
+
+| Key           | Type      | Description                                                            |
+|---------------|-----------|------------------------------------------------------------------------|
+| `amount`      | `number`  | The amount of the item currently being crafted                         |
+| `displayName` | `string`  | The display name of the item being crafted (AKA the in game item name) |
+| `systemID`    | `string`  | The id of the item being crafted (following minecraft's id system)     |
+
+##### Example:
+
+```lua
+{
+   {
+      amount = 1,
+      displayName = "Oak Planks",
+      systemID = "minecraft:oak_planks"
+   }
+}
+```
 
 ### `scheduleCrafting(type, id, amount)`
 
@@ -194,18 +220,15 @@ _SCHEDULED_ crafting job changes to _STARTED_.
 
 ## Versioning
 
-AE2CC Bridge uses a custom versioning scheme that follows the spirit of the
+PowerAE2CC Bridge uses a custom versioning scheme that follows the spirit of the
 [SemVer 2.0.0](https://semver.org/spec/v2.0.0.html) specification.
 
-Given a version number `WORLD.API.FEATURE-MC-LOADER-TARGET.PATCH`, increment the:
+Given a version number `UPSTREAM.FORK.MINOR.PATCH-MC-LOADER`, increment the:
 
-1. `WORLD` version when you make save-game incompatible changes,
-2. `API` version when you make incompatible API changes,
-3. `FEATURE` version when you update functionality in a backwards compatible
-   manner
-4. `TARGET` version when you update to a backward incompatible version of your
-   loader
-5. `PATCH` version when you make backwards compatible bug fixes
+1. `UPSTREAM` The major version of the upstream project (AE2CC Bridge) that this fork is based on
+2. `FORK` The major version of this fork
+3. `MINOR` version when you add functionality in a backwards compatible manner
+4. `PATCH` version when you make backwards compatible bug fixes
 
 The `MC` version should always be the version string of the targeted version of
 Minecraft. If multiple Minecraft versions are supported by a single mod version,
@@ -217,13 +240,15 @@ version was written for (e.g. "FABRIC").
 
 ## Supported versions
 
-| Minecraft Version | State              |
-|-------------------|--------------------|
-| 1.18              | Mainline           |
+| Minecraft Version | State                   |
+|-------------------|-------------------------|
+| 1.20.1            | Mainline (this fork)    |
+| 1.18              | Mainline (upstream)     |
+| 1.18              | Unsupported (this fork) |
 
-**This is the mainline repository** for the development of _AE2CC Bridge_ which
+**This is the mainline repository** for the development of _PowerAE2CC Bridge_ which
 usually targets the most recent Minecraft version. The development for other
-versions of Minecraft happens in the repositories linked in the table above.
+versions of Minecraft happens in the repositories linked in the table above or in the upstream repository.
 
 
 ### Support Cycle
@@ -240,17 +265,11 @@ versions of Minecraft happens in the repositories linked in the table above.
 
 ### Setup
 
-This project uses [Gradle's toolchain support](https://docs.gradle.org/7.6/userguide/toolchains.html)
+This project uses [Gradle's toolchain support](https://docs.gradle.org/8.1.1/userguide/toolchains.html)
 to detect and select the JDKs required to run the build. Please refer to the
 build scripts to find out which toolchains are requested.
 
-An installed JDK 1.8 (or later) is required to use Gradle.
-
-A local installation of CC:Restitched is required to build this mod. The
-recommended way to create one is going to the submodule under `deps/cc-restitched`
-and calling:
-
-    gradlew jar publishToMavenLocal
+An installed JDK 17 (or later) is required.
 
 ### Building
 
@@ -270,7 +289,6 @@ Important Gradle tasks to remember are:
 - `runServer`               - runs the development server
 
 Additionally `tasks` may be used to print a list of all available tasks.
-
 
 ## License
 
