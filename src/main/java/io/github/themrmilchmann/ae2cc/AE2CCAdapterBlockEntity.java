@@ -78,7 +78,7 @@ public final class AE2CCAdapterBlockEntity extends AENetworkBlockEntity implemen
         } else if (key instanceof AEItemKey) {
             type = "item";
         } else {
-            throw new IllegalArgumentException();
+            type = "unknown";
         }
 
         id = key.getId().toString();
