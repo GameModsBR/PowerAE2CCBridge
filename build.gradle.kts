@@ -27,7 +27,7 @@ plugins {
     alias(libs.plugins.loom)
 }
 
-version = "1.0.0-1.20.1-FABRIC"
+version = "1.1.0.0-1.20.1-FABRIC"
 
 tasks {
     compileJava {

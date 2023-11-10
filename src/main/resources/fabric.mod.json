@@ -3,9 +3,9 @@
     "id": "ae2cc",
     "version": "${version}",
 
-    "name": "Power AE2CC Bridge",
+    "name": "PowerAE2CC Bridge",
     "description": "An Applied Energistics 2 bridge for ComputerCraft",
-    "authors": ["TheMrMilchmann"],
+    "authors": ["LoboMetalurgico", "SpaceFox", "TheMrMilchmann"],
     "contact": {
         "homepage": "https://github.com/GameModsBR/PowerAE2CCBridge",
         "issues": "https://github.com/GameModsBR/PowerAE2CCBridge/issues",
