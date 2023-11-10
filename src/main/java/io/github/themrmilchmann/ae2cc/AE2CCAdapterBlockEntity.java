@@ -22,6 +22,7 @@
 package io.github.themrmilchmann.ae2cc;
 
 import appeng.api.config.Actionable;
+import appeng.api.networking.GridFlags;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.crafting.*;
@@ -104,6 +105,8 @@ public final class AE2CCAdapterBlockEntity extends AENetworkBlockEntity implemen
     public AE2CCAdapterBlockEntity(BlockPos blockPos, BlockState blockState) {
         super(AE2CCBridge.ADAPTER_BLOCK_ENTITY, blockPos, blockState);
 
+        this.getMainNode().setIdlePowerUsage(5);
+        this.getMainNode().setFlags(GridFlags.REQUIRE_CHANNEL);
         this.getMainNode().addService(ICraftingRequester.class, this);
         this.getMainNode().addService(IGridTickable.class, this);
     }
