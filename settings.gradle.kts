@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-rootProject.name = "AE2CCBridge"
+rootProject.name = "PowerAE2CCBridge"
 
 pluginManagement {
     repositories {

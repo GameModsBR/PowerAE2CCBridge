@@ -3,13 +3,13 @@
     "id": "ae2cc",
     "version": "${version}",
 
-    "name": "AE2CC Bridge",
+    "name": "Power AE2CC Bridge",
     "description": "An Applied Energistics 2 bridge for ComputerCraft",
     "authors": ["TheMrMilchmann"],
     "contact": {
-        "homepage": "https://github.com/TheMrMilchmann/AE2CCBridge",
-        "issues": "https://github.com/TheMrMilchmann/AE2CCBridge/issues",
-        "sources": "https://github.com/TheMrMilchmann/AE2CCBridge"
+        "homepage": "https://github.com/GameModsBR/PowerAE2CCBridge",
+        "issues": "https://github.com/GameModsBR/PowerAE2CCBridge/issues",
+        "sources": "https://github.com/GameModsBR/PowerAE2CCBridge"
     },
 
     "license": "MIT",
